@@ -1,4 +1,7 @@
 use clap::{Parser, Subcommand};
+use monitor::Monitor;
+
+mod monitor;
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -6,9 +9,11 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub fn execute(self) {
+    pub fn execute(self, config_file: &str) {
         match self {
             Self::Monitor => {
+                let _m = Monitor::new_from_file(config_file).unwrap();
+
                 println!("[TODO] Power: ----W")
             }
         }
@@ -17,13 +22,15 @@ impl Commands {
 
 #[derive(Parser)]
 pub struct Cli {
+    #[arg(short, long)]
+    config_file: String,
     #[command(subcommand)]
     command: Commands,
 }
 
 impl Cli {
     pub fn execute(self) {
-        self.command.execute();
+        self.command.execute(&self.config_file);
     }
 }
 

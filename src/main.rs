@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use monitor::Monitor;
 
 mod monitor;
+mod tasmota;
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -9,14 +10,17 @@ pub enum Commands {
 }
 
 impl Commands {
-    pub fn execute(self, config_file: &str) {
-        match self {
+    pub async fn execute(self, config_file: &str) {
+        let handle = match self {
             Self::Monitor => {
-                let _m = Monitor::new_from_file(config_file).unwrap();
-
-                println!("[TODO] Power: ----W")
+                let m = Monitor::new_from_file(config_file).unwrap();
+                tokio::spawn(async move {
+                    m.get_power().await.unwrap();
+                })
+                // println!("[TODO] Power: ----W")
             }
-        }
+        };
+        handle.await.unwrap();
     }
 }
 
@@ -29,12 +33,13 @@ pub struct Cli {
 }
 
 impl Cli {
-    pub fn execute(self) {
-        self.command.execute(&self.config_file);
+    pub async fn execute(self) {
+        self.command.execute(&self.config_file).await;
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
-    cli.execute();
+    cli.execute().await;
 }

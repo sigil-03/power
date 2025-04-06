@@ -41,8 +41,6 @@ impl Monitor {
     pub fn new_from_file(config_file: &str) -> Result<Self, Error> {
         let config_str = fs::read_to_string(config_file)?;
         let config: MonitorConfig = toml::from_str(&config_str)?;
-        config.print();
-
         Ok(Self {
             targets: Monitor::load_targets(&config.targets),
             client: Client::new(),
@@ -60,7 +58,9 @@ impl Monitor {
     pub async fn get_power(&self) -> Result<(), Error> {
         for target in &self.targets {
             if let Ok(res) = target.get_power().await {
-                println!("POWER: {}W", res);
+                target.print();
+                println!("* POWER: {}W", res);
+                println!("------------------")
             }
         }
         Ok(())

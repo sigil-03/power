@@ -26,11 +26,13 @@ pub struct StatusResponse {
 
 #[derive(Deserialize, Clone)]
 pub struct TasmotaInterfaceConfig {
+    name: String,
     target: String,
 }
 
 impl TasmotaInterfaceConfig {
     pub fn print(&self) {
+        println!("{}", self.name);
         println!("* {}", self.target);
     }
 }
@@ -46,6 +48,9 @@ impl TasmotaInterface {
             config,
             client: Client::new(),
         }
+    }
+    pub fn print(&self) {
+        println!("{}", self.config.name)
     }
 }
 

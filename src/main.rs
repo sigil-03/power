@@ -17,7 +17,6 @@ impl Commands {
                 tokio::spawn(async move {
                     m.get_power().await.unwrap();
                 })
-                // println!("[TODO] Power: ----W")
             }
         };
         handle.await.unwrap();

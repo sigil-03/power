@@ -1,4 +1,5 @@
-use clap::Subcommand;
+use clap::Parser;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,7 +14,7 @@ pub enum Error {
     JsonParseError(#[from] serde_json::Error),
 }
 
-#[derive(Subcommand, Clone)]
+#[derive(Serialize, Deserialize, Parser, Clone)]
 pub enum PowerState {
     Off,
     On,

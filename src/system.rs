@@ -1,6 +1,7 @@
+use crate::control::Control;
 use crate::monitor::Monitoring;
 use crate::tasmota::{TasmotaInterface, TasmotaInterfaceConfig};
-use crate::types::Error;
+use crate::types::{self, Error};
 use reqwest::Client;
 use serde::Deserialize;
 use std::fs;
@@ -38,7 +39,7 @@ impl System {
         v
     }
 
-    pub async fn get_power(&self) -> Result<(), Error> {
+    pub async fn try_get_power(&self) -> Result<(), Error> {
         for component in &self.components {
             if let Ok(res) = component.get_power().await {
                 component.print();
@@ -46,6 +47,12 @@ impl System {
                 println!("------------------")
             }
         }
+        Ok(())
+    }
+
+    pub async fn try_set_power(&self, index: usize, state: types::PowerState) -> Result<(), Error> {
+        //TODO: check bounds
+        self.components[index].set_power(state).await?;
         Ok(())
     }
 }

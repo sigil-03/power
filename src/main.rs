@@ -6,26 +6,31 @@ mod system;
 mod tasmota;
 mod types;
 
+#[derive(Parser)]
+pub struct PowerCommand {
+    index: usize,
+    #[command(subcommand)]
+    state: types::PowerState,
+}
+
 #[derive(Subcommand)]
 pub enum Commands {
     Monitor,
-    #[command(subcommand)]
-    Set(types::PowerState),
+    Set(PowerCommand),
 }
 
 impl Commands {
     pub async fn execute(self, config_file: &str) {
+        let s = system::System::new_from_file(config_file).unwrap();
+
         let handle = match self {
-            Self::Monitor => {
-                let s = system::System::new_from_file(config_file).unwrap();
-                tokio::spawn(async move {
-                    s.get_power().await.unwrap();
-                })
-            }
-            Self::Set(state) => {
+            Self::Monitor => tokio::spawn(async move {
+                s.try_get_power().await.unwrap();
+            }),
+            Self::Set(command) => {
                 // let c = Controller::new_from_file(config_file).unwrap();
                 tokio::spawn(async move {
-                    println!("SET");
+                    s.try_set_power(command.index, command.state).await.unwrap();
                 })
             }
         };

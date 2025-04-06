@@ -1,5 +1,5 @@
-use crate::types::Error;
+use crate::types::{Error, PowerState};
 
 pub trait Control {
-    async fn set_power(&self) -> Result<(), Error>;
+    async fn set_power(&self, state: PowerState) -> Result<(), Error>;
 }

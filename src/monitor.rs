@@ -1,4 +1,4 @@
-use crate::tasmota::{PowerStatusData, StatusResponse};
+use crate::tasmota::{PowerStatusData, StatusResponse, TasmotaInterface, TasmotaInterfaceConfig};
 use reqwest::Client;
 use serde::Deserialize;
 use std::fs;
@@ -16,20 +16,24 @@ pub enum Error {
     JsonParseError(#[from] serde_json::Error),
 }
 
+pub trait Monitoring {
+    async fn get_power(&self) -> Result<isize, Error>;
+}
+
 #[derive(Deserialize)]
 pub struct MonitorConfig {
-    target: Vec<String>,
+    targets: Vec<TasmotaInterfaceConfig>,
 }
 impl MonitorConfig {
     fn print(&self) {
-        for t in &self.target {
-            println!("* {}", t);
+        for t in &self.targets {
+            t.print();
         }
     }
 }
 
 pub struct Monitor {
-    config: MonitorConfig,
+    targets: Vec<TasmotaInterface>,
     client: Client,
 }
 
@@ -37,26 +41,28 @@ impl Monitor {
     pub fn new_from_file(config_file: &str) -> Result<Self, Error> {
         let config_str = fs::read_to_string(config_file)?;
         let config: MonitorConfig = toml::from_str(&config_str)?;
-        // config.print();
+        config.print();
+
         Ok(Self {
-            config,
+            targets: Monitor::load_targets(&config.targets),
             client: Client::new(),
         })
     }
 
-    pub async fn get_power(&self) -> Result<(), Error> {
-        let ip = &self.config.target[0];
-        let res = self
-            .client
-            .get(format!("http://{ip}/cm?cmnd=Status%208"))
-            .send()
-            .await?
-            .text()
-            .await?;
+    pub fn load_targets(targets: &Vec<TasmotaInterfaceConfig>) -> Vec<TasmotaInterface> {
+        let mut v = Vec::new();
+        for target in targets {
+            v.push(TasmotaInterface::new(target.clone()));
+        }
+        v
+    }
 
-        // println!("body = {res:?}");
-        let data: StatusResponse = serde_json::from_str(&res)?;
-        println!("POWER: {}W", data.status.energy.power);
+    pub async fn get_power(&self) -> Result<(), Error> {
+        for target in &self.targets {
+            if let Ok(res) = target.get_power().await {
+                println!("POWER: {}W", res);
+            }
+        }
         Ok(())
     }
 }

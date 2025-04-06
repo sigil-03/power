@@ -2,7 +2,6 @@ use crate::control::Control;
 use crate::monitor::Monitoring;
 use crate::tasmota::{TasmotaInterface, TasmotaInterfaceConfig};
 use crate::types::{self, Error};
-use reqwest::Client;
 use serde::Deserialize;
 use std::fs;
 
@@ -11,6 +10,7 @@ pub struct SystemConfig {
     components: Vec<TasmotaInterfaceConfig>,
 }
 impl SystemConfig {
+    #[allow(unused)]
     fn print(&self) {
         for t in &self.components {
             t.print();

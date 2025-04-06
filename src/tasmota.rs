@@ -1,8 +1,7 @@
 use reqwest::Client;
 use serde::Deserialize;
 
-use crate::monitor::Error;
-use crate::monitor::Monitoring;
+use crate::{control::Control, monitor::Monitoring};
 
 #[derive(Deserialize)]
 pub struct EnergyData {
@@ -67,5 +66,22 @@ impl Monitoring for TasmotaInterface {
 
         let data: StatusResponse = serde_json::from_str(&res)?;
         Ok(data.status.energy.power)
+    }
+}
+
+impl Control for TasmotaInterface {
+    async fn set_power(&self) -> Result<(), Error> {
+        let res = self
+            .client
+            .get(format!(
+                "http://{}/cm?cmnd=Power%20TOGGLE",
+                &self.config.target
+            ))
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        Ok(())
     }
 }

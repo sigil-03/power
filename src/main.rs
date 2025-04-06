@@ -1,21 +1,31 @@
 use clap::{Parser, Subcommand};
-use monitor::Monitor;
 
+mod control;
 mod monitor;
+mod system;
 mod tasmota;
+mod types;
 
 #[derive(Subcommand)]
 pub enum Commands {
     Monitor,
+    #[command(subcommand)]
+    Set(types::PowerState),
 }
 
 impl Commands {
     pub async fn execute(self, config_file: &str) {
         let handle = match self {
             Self::Monitor => {
-                let m = Monitor::new_from_file(config_file).unwrap();
+                let s = system::System::new_from_file(config_file).unwrap();
                 tokio::spawn(async move {
-                    m.get_power().await.unwrap();
+                    s.get_power().await.unwrap();
+                })
+            }
+            Self::Set(state) => {
+                // let c = Controller::new_from_file(config_file).unwrap();
+                tokio::spawn(async move {
+                    println!("SET");
                 })
             }
         };

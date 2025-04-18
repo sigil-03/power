@@ -1,3 +1,5 @@
-target = [
-    "YOUR IP HERE"
-    ]
+components = [
+    {name="OUTLET 1", target="OUTLET_1_IP"}, # OUTLET 1
+    {name="OUTLET 2", target="OUTLET_2_IP"}, # OUTLET 2
+    {name="OUTLET 3", target="OUTLET_3_IP"}, # OUTLET 3 ...
+]
